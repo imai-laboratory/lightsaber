@@ -1,1 +1,1 @@
-from anim import bar.AnimatedBarGraph
+from anim.bar import AnimatedBarGraph
