@@ -1,3 +1,4 @@
+from builtins import input
 import json
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -6,24 +7,25 @@ import subprocess
 import argparse
 
 class AnimatedBarGraph:
-    def __init__(self, row, column, max_val):
+    def __init__(self, row, column, max_val=1.0):
         self.row = row
         self.column = column
         self.proc = subprocess.Popen(
             [
-                'python', '-u', 'bar.py',
-                '--row', row,
-                '--column', column,
-                '--max', max_val
+                'python', '-u', __file__,
+                '--row', str(row),
+                '--column', str(column),
+                '--max', str(max_val)
             ],
             stdin=subprocess.PIPE)
 
-    def update(values, hilights=[]):
+    def update(self, values, hilights=[]):
         data = {
             'values': values,
-            'highlights': hilights
+            'hilights': hilights
         }
-        self.proc.stdin.write(json.dumps(data) + '\n')
+        self.proc.stdin.write(bytearray(json.dumps(data) + '\n', 'utf-8'))
+        self.proc.stdin.flush()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -43,7 +45,8 @@ if __name__ == '__main__':
         bars.append(axs[i].bar(x, y, label=str(i)))
 
     def draw(i):
-        data = json.loads(raw_input())
+        data = json.loads(input())
+        print(data)
         values = data['values']
         hilights = data['hilights']
         for i in range(args.row):
