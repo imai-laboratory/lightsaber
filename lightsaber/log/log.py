@@ -13,7 +13,7 @@ from collections import namedtuple
 # SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly'
 SCOPES = 'https://www.googleapis.com/auth/drive'
 CLIENT_SECRET_FILE = '~/.credentials/client_secret.json'
-APPLICATION_NAME = 'pythonDrive'
+APPLICATION_NAME = 'pythonlog'
 
 # DEPRECATED
 MIMES = {
@@ -23,13 +23,16 @@ MIMES = {
 }
 
 SSMIME = 'application/vnd.google-apps.spreadsheet'
+ROW_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G',
+               'H', 'I', 'J', 'K', 'L', 'M', 'N'
+               ]
 
 
 class CloudLog():
     def __init__(self,
-                 root_id,
                  directory,
                  log_name,
+                 root_id='root',
                  credentials=None,
                  no_web_auth_flags=True,
                  ):
@@ -85,8 +88,8 @@ class CloudLog():
 
         # create spread sheet
         self.spread_sheet_id = self.create_spread_sheet(
-            self.parent_id,
-            self.log_name
+            self.log_name,
+            self.parent_id
         )
 
     def create_spread_sheet(self, filename, parent_id=None):
@@ -94,21 +97,21 @@ class CloudLog():
             Creates an empty spread sheet in google drive
         '''
         mimetype = SSMIME
+
         file_metadata = {
-            'title': os.path.split(filename)[-1],
+            'name': filename,
             'mimeType': mimetype,
             'parents': [parent_id]
         }
 
-        request = self.service.files().create(
-            body=file_metadata
-        ).execute(http=self.http)
+        request = self.service.files().create(body=file_metadata,
+                                              fields='id').execute()
 
-        print('CREATING: {:<40}'.format(filename), end=' ... ')
+        print('CREATING: {:<10}'.format(filename), end=' ... ')
         sys.stdout.flush()
 
         file_id = request.get('id')
-        print ('CERATED. Spread Seet ID: {}'.format(
+        print ('CERATED. Spread Sheet ID: {}'.format(
             file_id
         )
                )
@@ -213,14 +216,30 @@ class CloudLog():
                 # Print columns A and E, which correspond to indices 0 and 4.
                 print('%s, %s' % (row[0], row[4]))
 
-    def logprint(self, message):
+    def update_spread_sheet(self, contents):
         """
-            print message to stdout and spread-sheet
+            update spread sheet
         """
-        print('(LOGGED) {}'.format(message))
+        length = len(contents)
+        values = [contents]
+        range_name = 'A1:{}1'.format(ROW_LETTERS[length])
+        body = {
+            'values': values
+        }
+
+        result = self.ss_service.spreadsheets().values().append(
+            spreadsheetId=self.spread_sheet_id, range=range_name,
+            body=body, valueInputOption="USER_ENTERED"
+        ).execute()
+        return result
+
+
+def test():
+    cloud = CloudLog('testd1/testd2', 'log_name')
+    cloud.update_spread_sheet(['hoge1', 'hoge2', 'hoge3', 'hoge4'])
+    cloud.update_spread_sheet(['hoge11', 'hoge12', 'hoge13', 'hoge14'])
+    cloud.update_spread_sheet(['hoge111', 'hoge112', 'hoge113', 'hoge114'])
 
 
 if __name__ == '__main__':
-    cloud = CloudLog('0Bw2Q2C4IYEfATmRKaUxNTEpvY2M',
-                     'testd1/testd2', 'log_name')
-    cloud.get_spread_sheet(cloud.spread_sheet_id)
+    test()
