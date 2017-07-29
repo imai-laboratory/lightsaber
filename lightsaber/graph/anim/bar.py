@@ -46,7 +46,6 @@ if __name__ == '__main__':
 
     def draw(i):
         data = json.loads(input())
-        print(data)
         values = data['values']
         hilights = data['hilights']
         for i in range(args.row):
