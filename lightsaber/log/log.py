@@ -31,11 +31,12 @@ class CloudLog():
                  directory,
                  log_name,
                  credentials=None,
-                 no_web_auth_flags=False,
+                 no_web_auth_flags=True,
                  ):
         self.directory = directory
         self.log_name = log_name
         self.no_web_auth_flags = no_web_auth_flags
+        self.root_id = root_id
 
         print('save to:{} (google drive)'.format(
             os.path.join(self.directory, self.log_name)
@@ -63,16 +64,19 @@ class CloudLog():
         self.http = self.credentials.authorize(httplib2.Http())
         self.service = discovery.build('drive', 'v3', http=self.http)
 
+        self.folders_list = self.directory.split('/')
+
         # get service for spread sheet
         self.ss_service = discovery.build(
             'sheets',
             'v4',
             http=self.http,
             discoveryServiceUrl=(
-                'https://sheets.googleapis.com/$discovery/rest?',
+                'https://sheets.googleapis.com/$discovery/rest?'
                 'version=v4'
             )
         )
+
         # create parent directory
         self.parent_id = self.create_folders(
             self.folders_list,
@@ -96,7 +100,7 @@ class CloudLog():
             'parents': [parent_id]
         }
 
-        request = self.service.files().insert(
+        request = self.service.files().create(
             body=file_metadata
         ).execute(http=self.http)
 
@@ -126,7 +130,9 @@ class CloudLog():
         credentials = store.get()
 
         if not credentials or credentials.invalid:
-            flow = client.flow_from_clientsecrets(self.credentials, SCOPES)
+            print('no credentials. looking for {}'.format(self.credentials))
+            flow = client.flow_from_clientsecrets('client_secret.json',
+                                                  SCOPES)
             flow.user_agent = APPLICATION_NAME
             if self.no_web_auth_flags:
                 print("working with no_web_auth")
