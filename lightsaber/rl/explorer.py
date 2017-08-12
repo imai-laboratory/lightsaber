@@ -10,8 +10,6 @@ class LinearDecayExplorer:
         self.base_epsilon = self.start_epsilon - self.final_epsilon
 
     def select_action(self, t, greedy_action, num_actions):
-        if t > self.final_exploration_step:
-            return self.final_epsilon
         factor = 1 - float(t) / self.final_exploration_step
         if factor < 0:
             factor = 0
