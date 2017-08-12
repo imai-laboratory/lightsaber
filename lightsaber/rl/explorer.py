@@ -13,6 +13,8 @@ class LinearDecayExplorer:
         if t > self.final_exploration_step:
             return self.final_epsilon
         factor = 1 - float(t) / self.final_exploration_step
+        if factor < 0:
+            factor = 0
         eps = self.base_epsilon * factor + self.final_epsilon
         if random.random() < eps: 
             return np.random.choice(num_actions)
