@@ -29,6 +29,9 @@ class ReplayBuffer:
         return obs_t, actions, rewards, obs_tp1, done
 
 class NECReplayBuffer:
+    def __init__(self, buffer_size):
+        self.buffer = deque(maxlen=buffer_size)
+
     def append(self, obs_t, action, value):
         experience = dict(obs_t=obs_t, action=action, value=value)
         self.buffer.append(experience)
