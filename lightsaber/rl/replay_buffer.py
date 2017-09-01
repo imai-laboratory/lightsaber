@@ -27,3 +27,19 @@ class ReplayBuffer:
             obs_tp1.append(experience['obs_tp1'])
             done.append(experience['done'])
         return obs_t, actions, rewards, obs_tp1, done
+
+class NECReplayBuffer:
+    def append(self, obs_t, action, value):
+        experience = dict(obs_t=obs_t, action=action, value=value)
+        self.buffer.append(experience)
+
+    def sample(self, batch_size):
+        experiences = random.sample(self.buffer, batch_size)
+        obs_t = []
+        actions = []
+        values = []
+        for experience in experiences:
+            obs_t.append(experience['obs_t'])
+            actions.append(experience['action'])
+            values.append(experience['values'])
+        return obs_t, actions, values
