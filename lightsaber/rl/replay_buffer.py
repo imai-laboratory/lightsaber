@@ -44,5 +44,5 @@ class NECReplayBuffer:
         for experience in experiences:
             obs_t.append(experience['obs_t'])
             actions.append(experience['action'])
-            values.append(experience['values'])
+            values.append(experience['value'])
         return obs_t, actions, values
