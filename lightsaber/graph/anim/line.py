@@ -18,5 +18,5 @@ class AnimatedLineGraph:
         for i in range(self.row):
             self.axs[i].cla()
             self.axs[i].plot(np.arange((self.horizon)), values[i])
-        plt.pause(0.001)
+        plt.pause(0.0001)
         plt.draw()
