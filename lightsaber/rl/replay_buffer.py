@@ -1,4 +1,5 @@
 from collections import deque
+import numpy as np
 import random
 
 
@@ -64,7 +65,7 @@ class EpisodeReplayBuffer:
         self.tmp_obs_tp1_buffer = []
         self.tmp_done_buffer = []
 
-    def sample(self, batch_size):
+    def sample_episodes(self, batch_size):
         episodes = random.sample(self.buffer, batch_size)
         obs_t = []
         actions = []
@@ -78,6 +79,23 @@ class EpisodeReplayBuffer:
             obs_tp1.append(episode['obs_tp1'])
             done.append(episode['done'])
         return obs_t, actions, rewards, obs_tp1, done 
+
+    def sample_sequences(self, batch_size, step_size):
+        indices = np.random.choice(len(self.buffer), batch_size, replace=True)
+        obs_t = []
+        actions = []
+        rewards = []
+        obs_tp1 = []
+        done = []
+        for index in indices:
+            episode = self.buffer[index]
+            start_pos = np.random.randint(len(episode['obs_t']) - step_size)
+            obs_t.append(episode['obs_t'][start_pos:start_pos+step_size])
+            actions.append(episode['action'][start_pos:start_pos+step_size])
+            rewards.append(episode['reward'][start_pos:start_pos+step_size])
+            obs_tp1.append(episode['obs_tp1'][start_pos:start_pos+step_size])
+            done.append(episode['done'][start_pos:start_pos+step_size])
+        return obs_t, actions, rewards, obs_tp1, done
 
 class NECReplayBuffer:
     def __init__(self, buffer_size):
