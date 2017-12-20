@@ -66,13 +66,13 @@ class EpisodeReplayBuffer:
 
     def sample(self, batch_size):
         episodes = random.sample(self.buffer, batch_size)
-        obt_t = []
+        obs_t = []
         actions = []
         rewards = []
         obs_tp1 = []
         done = []
         for episode in episodes:
-            obt_t.append(episode['obt_t'])
+            obs_t.append(episode['obs_t'])
             actions.append(episode['action'])
             rewards.append(episode['reward'])
             obs_tp1.append(episode['obs_tp1'])
