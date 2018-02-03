@@ -20,4 +20,4 @@ class TfBoardLogger:
             [summary, placeholder],
             feed_dict={placeholder: value}
         )
-        self.writer(out, step)
+        self.writer.add_summary(out, step)
