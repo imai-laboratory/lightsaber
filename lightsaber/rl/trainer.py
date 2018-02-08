@@ -4,6 +4,7 @@ import numpy as np
 import copy
 import time
 import threading
+import copy
 
 
 class AgentInterface:
@@ -27,6 +28,7 @@ class Trainer:
             ).tolist(),
             maxlen=state_window
         )
+        self.init_states = copy.deepcopy(self.states)
         self.agent = agent
         self.preprocess = preprocess
         self.training = training
@@ -45,6 +47,7 @@ class Trainer:
             sum_of_rewards = 0
             done = False
             state = self.preprocess(self.env.reset())
+            self.states = copy.deepcopy(self.init_states)
 
             while True:
                 self.states.append(state.tolist())
