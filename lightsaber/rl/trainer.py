@@ -15,10 +15,18 @@ class AgentInterface:
         raise NotImplementedError()
 
 class Trainer:
-    def __init__(self, env, agent, state_shape=[84, 84],
-            final_step=1e7, state_window=1, preprocess=lambda s: s,
-            training=True, render=False, debug=True,
-            before_action=None, after_action=None, end_episode=None):
+    def __init__(self,
+                env,
+                agent,
+                state_shape=[84, 84],
+                final_step=1e7,
+                state_window=1,
+                training=True,
+                render=False,
+                debug=True,
+                before_action=None,
+                after_action=None,
+                end_episode=None):
         self.env = env
         self.final_step = final_step
         self.states = deque(
@@ -30,7 +38,6 @@ class Trainer:
         )
         self.init_states = copy.deepcopy(self.states)
         self.agent = agent
-        self.preprocess = preprocess
         self.training = training
         self.render = render
         self.debug = debug
@@ -46,7 +53,7 @@ class Trainer:
             reward = 0
             sum_of_rewards = 0
             done = False
-            state = self.preprocess(self.env.reset())
+            state = self.env.reset()
             self.states = copy.deepcopy(self.init_states)
 
             while True:
@@ -85,7 +92,6 @@ class Trainer:
                     self.training
                 )
                 state, reward, done, info = self.env.step(action)
-                state = self.preprocess(state)
                 sum_of_rewards += reward
 
                 # callback after taking action
@@ -102,11 +108,19 @@ class Trainer:
                     return
 
 class AsyncTrainer:
-    def __init__(self, envs, agents, state_shape=[84, 84],
-            final_step=1e7, state_window=1, preprocess=lambda s: s,
-            training=True, render=False, debug=True, before_action=None,
-            after_action=None, end_episode=None, n_threads=10):
-
+    def __init__(self,
+                envs,
+                agents,
+                state_shape=[84, 84],
+                final_step=1e7,
+                state_window=1,
+                training=True,
+                render=False,
+                debug=True,
+                before_action=None,
+                after_action=None,
+                end_episode=None,
+                n_threads=10):
         # meta data shared by all threads
         self.meta_data = {
             'shared_step': 0,
@@ -138,7 +152,13 @@ class AsyncTrainer:
                     reward
                 ))
             if end_episode is not None:
-                end_episode(reward, shared_step, global_step, shared_episode, episode)
+                end_episode(
+                    reward,
+                    shared_step,
+                    global_step,
+                    shared_episode,
+                    episode
+                )
 
         self.trainers = []
         for i in range(n_threads):
@@ -150,7 +170,6 @@ class AsyncTrainer:
                 state_shape=state_shape,
                 final_step=final_step,
                 state_window=state_window,
-                preprocess=preprocess,
                 training=training,
                 render=i == 0 and render,
                 debug=False,
