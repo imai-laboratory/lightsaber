@@ -41,6 +41,8 @@ class BatchEnvWrapper:
             )
             self.envs.append(env)
         self.running = [False for _ in range(len(envs))]
+        self.observation_space = envs[0].observation_space
+        self.action_space = envs[0].action_space
         state_shape = envs[0].observation_space.shape
         self.zero_state = np.zeros(state_shape, dtype=np.float32)
 
