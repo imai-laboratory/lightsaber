@@ -5,10 +5,10 @@ import scipy.signal
 def discount(x, gamma):
     return scipy.signal.lfilter([1], [1, -gamma], x[::-1], axis=0)[::-1]
 
-def compute_v_and_adv(self, rewards, values, bootstrapped_value, gamma, lam=1.0):
-    rewards = np.array(self.rewards)
-    values = np.array(self.values + [bootstrapped_value])
-    v = discount(np.array(self.rewards + [bootstrapped_value]), gamma)[:-1]
+def compute_v_and_adv(rewards, values, bootstrapped_value, gamma, lam=1.0):
+    rewards = np.array(rewards)
+    values = np.array(values + [bootstrapped_value])
+    v = discount(np.array(list(rewards) + [bootstrapped_value]), gamma)[:-1]
     delta = rewards + gamma * values[1:] - values[:-1]
     adv = discount(delta, gamma * lam)
     return v, adv
