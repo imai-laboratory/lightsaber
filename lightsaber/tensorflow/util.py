@@ -31,21 +31,23 @@ def huber_loss(x, delta=1.0):
 def get_session():
     return tf.get_default_session()
 
-def function(inputs, outputs, updates=None, givens=None):
+def function(inputs, outputs, updates=None, givens=None, options=None, run_metadata=None):
     if isinstance(outputs, list):
-        return _Function(inputs, outputs, updates, givens=givens)
+        return _Function(inputs, outputs, updates, givens=givens, options=options, run_metadata=run_metadata)
     elif isinstance(outputs, (dict, collections.OrderedDict)):
-        f = _Function(inputs, outputs.values(), updates, givens=givens)
+        f = _Function(inputs, outputs.values(), updates, givens=givens, options=options, run_metadata=run_metadata)
         return lambda *args, **kwargs: type(outputs)(zip(outputs.keys(), f(*args, **kwargs)))
     else:
-        f = _Function(inputs, [outputs], updates, givens=givens)
+        f = _Function(inputs, [outputs], updates, givens=givens, options=options, run_metadata=run_metadata)
         return lambda *args, **kwargs: f(*args, **kwargs)[0]
 
 class _Function(object):
-    def __init__(self, inputs, outputs, updates, givens):
+    def __init__(self, inputs, outputs, updates, givens, options, run_metadata):
         self.inputs = inputs
         self.outputs = outputs
         self.givens = {} if givens is None else givens
+        self.options= options
+        self.run_metadata = run_metadata
         updates = updates or []
         self.update_group = tf.group(*updates)
         self.outputs_update = list(outputs) + [self.update_group]
@@ -64,5 +66,10 @@ class _Function(object):
         for inpt in self.givens:
             if inpt not in feed_dict or feed_dict[inpt] is None:
                 feed_dict[inpt] = self.givens[inpt]
-        results = get_session().run(self.outputs_update, feed_dict=feed_dict)[:-1]
+        results = get_session().run(
+            self.outputs_update,
+            feed_dict=feed_dict,
+            options=self.options,
+            run_metadata=self.run_metadata
+        )[:-1]
         return results
