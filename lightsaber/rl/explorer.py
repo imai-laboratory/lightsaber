@@ -7,7 +7,7 @@ class ConstantExplorer:
         self.epsilon = epsilon
 
     def select_action(self, t, greedy_action, num_actions):
-        if random.random() < epsilon: 
+        if random.random() < self.epsilon: 
             return np.random.choice(num_actions)
         return greedy_action
 
