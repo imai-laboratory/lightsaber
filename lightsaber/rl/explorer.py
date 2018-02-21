@@ -1,6 +1,16 @@
 import numpy as np
 import random
 
+
+class ConstantExplorer:
+    def __init__(self, epsilon=0.1):
+        self.epsilon = epsilon
+
+    def select_action(self, t, greedy_action, num_actions):
+        if random.random() < epsilon: 
+            return np.random.choice(num_actions)
+        return greedy_action
+
 class LinearDecayExplorer:
     def __init__(self, final_exploration_step=10**6,
                 start_epsilon=1.0, final_epsilon=0.1):
