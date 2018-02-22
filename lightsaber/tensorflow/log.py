@@ -7,7 +7,7 @@ import re
 def dump_constants(constants, path):
     data = {}
     for name in dir(constants):
-        if re.match(r'^[A-Z]+$', name):
+        if re.match(r'^([A-Z]|_)+$', name):
             data[name] = getattr(constants, name)
     json_str = json.dumps(data)
     with open(path, 'w') as f:
