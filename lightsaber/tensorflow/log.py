@@ -33,3 +33,14 @@ class TfBoardLogger:
             feed_dict={placeholder: value}
         )
         self.writer.add_summary(out, step)
+
+class JsonLogger:
+    def __init__(self, path, overwrite=True):
+        self.f = open(path, 'w' if overwrite else 'wa')
+
+    def plot(self, **kwargs):
+        json_str = json.dumps(kwargs)
+        self.f.write(json_str + '\n')
+
+    def close(self):
+        self.f.close()
