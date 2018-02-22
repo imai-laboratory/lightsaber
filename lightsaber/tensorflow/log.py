@@ -1,5 +1,17 @@
 import tensorflow as tf
+import json
+import re
 
+
+# dump constant variables into json file
+def dump_constants(constants, path):
+    data = {}
+    for name in dir(constants):
+        if re.match(r'^[A-Z]+$', name):
+            data[name] = getattr(constants, name)
+    json_str = json.dumps(data)
+    with open(path, 'w') as f:
+        f.write(json_str + '\n')
 
 class TfBoardLogger:
     def __init__(self, writer):
