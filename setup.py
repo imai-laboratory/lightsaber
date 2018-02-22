@@ -11,4 +11,7 @@ setup(name="lightsaber",
         license="MIT",
         description="Utility scripts for machine learning research",
         url="https://github.com/imai-laboratory/lightsaber",
-        packages=find_packages())
+        packages=find_packages(),
+        scripts=[
+            'lightsaber/tools/plot-json'
+        ])
