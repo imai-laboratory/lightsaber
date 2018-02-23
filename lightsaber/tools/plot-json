@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import io
+import os
 import json
 import sys
 import platform
@@ -10,13 +11,13 @@ import platform
 from PIL import Image
 from subprocess import Popen, PIPE
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('x', help='key for x-axis')
 parser.add_argument('y', help='key for y-axis')
 parser.add_argument('path', nargs='+', help='path to json file')
 parser.add_argument('--window-size', type=int, default=1, help='window size of moving average')
 parser.add_argument('--clipboard', action='store_true', help='copy image to clipboard')
+parser.add_argument('--inline', action='store_true', help='show graph on terminal (for MacOS)')
 args = parser.parse_args()
 
 window_size = args.window_size
@@ -40,8 +41,7 @@ plt.legend()
 plt.xlabel(args.x)
 plt.ylabel(args.y)
 
-
-if args.clipboard:
+if args.clipboard or args.inline:
     fig.canvas.draw()
     w, h = fig.canvas.get_width_height()
     buf = np.fromstring(fig.canvas.tostring_argb(), dtype=np.uint8)
@@ -52,9 +52,17 @@ if args.clipboard:
     img.save(output, format='PNG')
     system = platform.system()
     if system == 'Linux':
-        p = Popen(['xclip', '-selection', 'clipboard', '-t', 'image/png'], stdin=PIPE)
+        if args.inline:
+            raise Exception('Sorry! inline option is not supported on Linux right now...')
+        else:
+            p = Popen(['xclip', '-selection', 'primary', '-t', 'image/png'], stdin=PIPE)
+    elif system == 'Darwin':
+        if args.inline:
+            p = Popen(['imgcat'], stdin=PIPE)
+        else:
+            raise Exception('Sorry! clipboard option is not supported on MacOS right now...')
     else:
-        raise Exception('Sorry! Linux is only supported right now...')
+        raise Exception('Sorry! clipboard option is not supported on Windows right now...')
     p.communicate(input=output.getvalue())
 else:
     plt.show()
