@@ -10,6 +10,8 @@ $ plot-json x-axis y-axis path [path,...]
 | option | description
 |:-|:-|
 | --window-size | window size of moving average |
+| --inline | show graph on the terminal (only for MacOS) |
+| --clipboard | copy graph image to clipboard (only for Ubuntu) |
 
 ### example
 ```
