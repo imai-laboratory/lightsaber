@@ -13,5 +13,6 @@ setup(name="lightsaber",
         url="https://github.com/imai-laboratory/lightsaber",
         packages=find_packages(),
         scripts=[
-            'lightsaber/tools/plot-json'
+            'lightsaber/tools/plot-json',
+            'lightsaber/tools/echo-timestamp'
         ])
