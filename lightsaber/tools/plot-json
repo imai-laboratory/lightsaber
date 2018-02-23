@@ -55,7 +55,7 @@ if args.clipboard or args.inline:
         if args.inline:
             raise Exception('Sorry! inline option is not supported on Linux right now...')
         else:
-            p = Popen(['xclip', '-selection', 'primary', '-t', 'image/png'], stdin=PIPE)
+            p = Popen(['xclip', '-selection', 'clipboard', '-t', 'image/png'], stdin=PIPE)
     elif system == 'Darwin':
         if args.inline:
             p = Popen(['imgcat'], stdin=PIPE)
