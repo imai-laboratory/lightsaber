@@ -2,7 +2,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
+import io
 import json
+import sys
+import platform
+
+from PIL import Image
+from subprocess import Popen, PIPE
 
 
 parser = argparse.ArgumentParser()
@@ -10,10 +16,13 @@ parser.add_argument('x', help='key for x-axis')
 parser.add_argument('y', help='key for y-axis')
 parser.add_argument('path', nargs='+', help='path to json file')
 parser.add_argument('--window-size', type=int, default=1, help='window size of moving average')
+parser.add_argument('--clipboard', action='store_true', help='copy image to clipboard')
 args = parser.parse_args()
 
 window_size = args.window_size
 window_mask = np.ones((window_size), dtype=np.float32) / window_size
+
+fig = plt.figure()
 
 for i, path in enumerate(args.path):
     x_values = []
@@ -30,4 +39,22 @@ for i, path in enumerate(args.path):
 plt.legend()
 plt.xlabel(args.x)
 plt.ylabel(args.y)
-plt.show()
+
+
+if args.clipboard:
+    fig.canvas.draw()
+    w, h = fig.canvas.get_width_height()
+    buf = np.fromstring(fig.canvas.tostring_argb(), dtype=np.uint8)
+    buf.shape = (w, h, 4)
+    buf = np.roll(buf, 3, axis=2)
+    img = Image.frombytes('RGBA', (w, h), buf.tostring())
+    output = io.BytesIO()
+    img.save(output, format='PNG')
+    system = platform.system()
+    if system == 'Linux':
+        p = Popen(['xclip', '-selection', 'clipboard', '-t', 'image/png'], stdin=PIPE)
+    else:
+        raise Exception('Sorry! Linux is only supported right now...')
+    p.communicate(input=output.getvalue())
+else:
+    plt.show()
