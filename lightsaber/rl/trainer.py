@@ -26,7 +26,8 @@ class Trainer:
                 debug=True,
                 before_action=None,
                 after_action=None,
-                end_episode=None):
+                end_episode=None,
+                is_finished=None):
         self.env = env
         self.final_step = final_step
         self.init_states = deque(
@@ -43,6 +44,7 @@ class Trainer:
         self.before_action = before_action
         self.after_action = after_action
         self.end_episode = end_episode
+        self.is_finished = is_finished
 
         # counters
         self.global_step = 0
@@ -50,7 +52,7 @@ class Trainer:
         self.episode = 0
         self.sum_of_rewards = 0
 
-    def move_to_next(self, states, reward):
+    def move_to_next(self, states, reward, done):
         states = np.array(list(states))
         # take next action
         action = self.agent.act(
@@ -84,42 +86,23 @@ class Trainer:
             states = copy.deepcopy(self.init_states)
             while True:
                 states.append(state.tolist())
+
                 # episode reaches the end
                 if done:
                     self.episode += 1
-                    # callback at the end of episode
-                    if self.end_episode is not None:
-                        self.end_episode(
-                            self.sum_of_rewards,
-                            self.global_step,
-                            self.episode
-                        )
+                    self.end_episode_callback()
                     self.finish_episode(states, reward)
                     break
 
-                # callback before taking action
-                if self.before_action is not None:
-                    self.before_action(
-                        states,
-                        self.global_step,
-                        self.local_step
-                    )
-                # take action and move to next state
-                state, reward, done, info = self.move_to_next(states, reward)
-                # callback after taking action
-                if self.after_action is not None:
-                    self.after_action(
-                        states,
-                        reward,
-                        self.global_step,
-                        self.local_step
-                    )
+                self.before_action_callback(states)
+                state, reward, done, info = self.move_to_next(states, reward, done)
+                self.after_action_callback(states, reward)
 
                 self.sum_of_rewards += reward
                 self.global_step += 1
                 self.local_step += 1
 
-            if self.global_step > self.final_step:
+            if self.is_training_finished():
                 return
 
     def print_info(self):
@@ -128,6 +111,36 @@ class Trainer:
             self.episode,
             self.sum_of_rewards
         ))
+
+    def before_action_callback(self, states):
+        if self.before_action is not None:
+            self.before_action(
+                states,
+                self.global_step,
+                self.local_step
+            )
+
+    def after_action_callback(self, states, reward):
+        if self.after_action is not None:
+            self.after_action(
+                states,
+                reward,
+                self.global_step,
+                self.local_step
+            )
+
+    def end_episode_callback(self):
+        if self.end_episode is not None:
+            self.end_episode(
+                self.sum_of_rewards,
+                self.global_step,
+                self.episode
+            )
+
+    def is_training_finished(self):
+        if self.is_finished is not None:
+            return self.is_finished(self.global_step)
+        return self.global_step > self.final_step
 
 class BatchTrainer(Trainer):
     def __init__(self,
@@ -180,39 +193,35 @@ class BatchTrainer(Trainer):
                     self.finish_episode(np_states, rewards)
                     break
 
-                # callback before taking action
-                if self.before_action is not None:
-                    for i in range(n_envs):
-                        self.before_action(
-                            states[i],
-                            self.global_step,
-                            self.local_step[i]
-                        )
+                for i in range(n_envs):
+                    self.before_action_callback(
+                        states[i],
+                        self.global_step,
+                        self.local_step[i]
+                    )
+
                 # backup episode status
                 prev_dones = dones
                 states, rewards, dones, infos = self.move_to_next(np_states, rewards)
 
-                # callback before taking action
-                if self.after_action is not None:
-                    for i in range(n_envs):
-                        self.after_action(
-                            states[i],
-                            rewards[i],
-                            self.global_step,
-                            self.local_step[i]
-                        )
+                for i in range(n_envs):
+                    self.after_action_callback(
+                        states[i],
+                        rewards[i],
+                        self.global_step,
+                        self.local_step[i]
+                    )
 
                 # check ended episodes
                 for i in range(n_envs):
                     if not prev_dones[i] and dones[i]:
                         self.episode += 1
                         # callback at the end of episode
-                        if self.end_episode is not None:
-                            self.end_episode(
-                                self.sum_of_rewards[i],
-                                self.global_step,
-                                self.episode
-                            )
+                        self.end_episode(
+                            self.sum_of_rewards[i],
+                            self.global_step,
+                            self.episode
+                        )
 
                 for i in range(n_envs):
                     self.sum_of_rewards[i] += rewards[i]
@@ -220,7 +229,7 @@ class BatchTrainer(Trainer):
                         self.global_step += 1
                         self.local_step[i] += 1
 
-            if self.global_step > self.final_step:
+            if self.is_training_finished():
                 return
 
     # overwrite
@@ -300,7 +309,8 @@ class AsyncTrainer:
                 debug=False,
                 before_action=_before_action,
                 after_action=_after_action,
-                end_episode=_end_episode
+                end_episode=_end_episode,
+                is_finished=lambda s: self.meta_data['shared_step'] > final_step
             )
             self.trainers.append(trainer)
 
