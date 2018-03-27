@@ -3,15 +3,28 @@ import json
 import re
 
 
+# dummy class to restore constant file
+class Constant:
+    pass
+
 # dump constant variables into json file
 def dump_constants(constants, path):
     data = {}
     for name in dir(constants):
-        if re.match(r'^([A-Z]|_)+$', name):
+        if re.match(r'^([A-Z]|_|[0-9])+$', name):
             data[name] = getattr(constants, name)
     json_str = json.dumps(data)
     with open(path, 'w') as f:
         f.write(json_str + '\n')
+
+# restore a constant object from json file
+def restore_constants(path):
+    constants = Constant()
+    with open(path, 'r') as f:
+        json_obj = json.loads(f.read())
+        for key, value in json_obj.items():
+            setattr(constants, key, value)
+    return constants
 
 class TfBoardLogger:
     def __init__(self, writer):
