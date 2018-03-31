@@ -172,6 +172,22 @@ class BatchTrainer(Trainer):
         # overwrite global_step
         self.global_step = 0
 
+    # TODO: Remove this overwrite
+    def move_to_next(self, states, reward, done):
+        states = np.array(list(states))
+        # take next action
+        action = self.agent.act(
+            states,
+            reward,
+            done, # overwrite line this
+            self.training
+        )
+        state, reward, done, info = self.env.step(action)
+        # render environment
+        if self.render:
+            self.env.render()
+        return state, reward, done, info
+
     # overwrite
     def start(self):
         while True:
@@ -202,7 +218,8 @@ class BatchTrainer(Trainer):
 
                 # backup episode status
                 prev_dones = dones
-                states, rewards, dones, infos = self.move_to_next(np_states, rewards)
+                states, rewards, dones, infos = self.move_to_next(
+                    np_states, rewards, prev_dones)
 
                 for i in range(n_envs):
                     self.after_action_callback(
