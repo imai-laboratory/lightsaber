@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
 import socket
@@ -45,7 +45,7 @@ def dirs():
             'files': get_files(dir_name)
         })
     res = {'dirs': data}
-    return json.dumps(res)
+    return jsonify(res)
 
 @app.route("/dirs/<dir_name>/<file_name>", methods=['GET'])
 def get_content(dir_name, file_name):
@@ -53,7 +53,7 @@ def get_content(dir_name, file_name):
     with open(path, 'r') as f:
         content = f.read()
     data = {'content': content}
-    return json.dumps(data)
+    return jsonify(data)
 
 if __name__ == "__main__":
     app.run(port=8000, host='0.0.0.0', debug=True)

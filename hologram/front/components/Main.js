@@ -3,7 +3,7 @@ import DirectoryStore from '../stores/DirectoryStore'
 import AppActions from '../actions/AppActions'
 import DirectoryList from './DirectoryList'
 
-class Main extends React.Component {
+export default class Main extends React.Component {
   constructor (props) {
     super(props)
     DirectoryStore.addChangeListener(() => {
@@ -20,7 +20,6 @@ class Main extends React.Component {
   }
 
   render () {
-    console.log('test')
     const state = this.state
     return (
       <div>

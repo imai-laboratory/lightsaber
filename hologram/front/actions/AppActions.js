@@ -8,8 +8,8 @@ const actions = {
       actionType: AppConstants.LOAD_DIRECTORIES_STARTED
     })
     Api.getDirectories()
-      .then((directories) => {
-        actions.loadDirectoriesCompleted(directories)
+      .then((data) => {
+        actions.loadDirectoriesCompleted(data.dirs)
       })
   },
   loadDirectoriesCompleted: (directories) => {
@@ -19,3 +19,5 @@ const actions = {
     })
   }
 }
+
+export default actions
