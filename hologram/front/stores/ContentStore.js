@@ -1,0 +1,84 @@
+import AppDispatcher from '../dispatcher/AppDispatcher'
+import AppConstants from '../constants/AppConstants'
+import { EventEmitter } from 'events'
+
+let CHANGE_EVENT = 'change'
+
+let store = []
+
+class ContentStore extends EventEmitter {
+  getAll () {
+    return store
+  }
+
+  emitChange () {
+    this.emit(CHANGE_EVENT)
+  }
+
+  addChangeListener (callback) {
+    this.on(CHANGE_EVENT, callback)
+  }
+
+  removeChangeListener (callback) {
+    this.removeListener(CHANGE_EVENT, callback)
+  }
+
+  getContent (dirName, fileName) {
+    const index = getIndex(dirName, fileName)
+    if (index === -1) {
+      return null
+    } else {
+      return store[index].content
+    }
+  }
+
+  getParameters () {
+    const parameters = []
+    for (let i = 0; i < store.length; ++i) {
+      if (store[i].fileName === 'constants.json') {
+        const parameter = JSON.parse(store[i].content)
+        parameters.push({dirName: store[i].dirName, parameter: parameter})
+      }
+    }
+    return parameters
+  }
+}
+
+function getIndex (dirName, fileName) {
+  let exists = false
+  for (let i = 0; i < store.length; ++i) {
+    if (store[i].dirName === dirName && store[i].fileName === fileName) {
+      exists = true
+      break
+    }
+  }
+  if (exists) {
+    return i
+  } else {
+    return -1
+  }
+}
+
+let contentStore = new ContentStore()
+contentStore.dispatchToken = AppDispatcher.register((action) => {
+  switch (action.actionType) {
+    case AppConstants.LOAD_CONTENT_COMPLETED:
+      const dirName = action.dirName
+      const fileName = action.fileName
+      const content = action.content
+      const index = getIndex(dirName, fileName)
+      if (index === -1) {
+        store.push({
+          dirName: dirName,
+          fileName: fileName,
+          content: content
+        })
+      } else {
+        store[index].content = content
+      }
+      contentStore.emitChange()
+      break
+  }
+})
+
+export default contentStore
