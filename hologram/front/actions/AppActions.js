@@ -18,7 +18,11 @@ const actions = {
       directories: directories
     })
     for (let directory of directories) {
-      actions.loadContent(directory.directory, 'constants.json')
+      for (let file of directory.files) {
+        if (/.*.json$/.test(file)) {
+          actions.loadContent(directory.directory, file)
+        }
+      }
     }
   },
   loadContent: (dirName, fileName) => {

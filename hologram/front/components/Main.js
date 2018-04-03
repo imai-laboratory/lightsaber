@@ -4,6 +4,7 @@ import ContentStore from '../stores/ContentStore'
 import AppActions from '../actions/AppActions'
 import DirectoryList from './DirectoryList'
 import ParameterTable from './ParameterTable'
+import Graph from './Graph'
 
 export default class Main extends React.Component {
   constructor (props) {
@@ -13,7 +14,7 @@ export default class Main extends React.Component {
     })
     ContentStore.addChangeListener(() => {
       this.setState({
-        contents: ContentStore.getAll(),
+        contents: ContentStore.getContents('reward.json'),
         parameters: ContentStore.getParameters()
       })
     })
@@ -31,10 +32,9 @@ export default class Main extends React.Component {
 
   render () {
     const state = this.state
-    console.log(state.parameters)
     return (
       <div>
-        <DirectoryList directories={state.directories} />
+        <Graph contents={state.contents} x={'step'} y={'reward'} />
         <ParameterTable parameters={state.parameters} />
       </div>
     )

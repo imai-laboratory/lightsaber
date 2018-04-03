@@ -6,6 +6,8 @@ import socket
 import json
 import argparse
 
+from datetime import datetime
+
 
 app = Flask(__name__)
 CORS(app)
@@ -33,7 +35,8 @@ def get_files(dir_name):
 
 @app.route("/", methods=['GET'])
 def index():
-    return render_template("index.html")
+    date = datetime.now().strftime("%Y%m%d%H%M%S")
+    return render_template("index.html", version=date)
 
 @app.route("/dirs", methods=['GET'])
 def dirs():

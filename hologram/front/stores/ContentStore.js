@@ -6,6 +6,13 @@ let CHANGE_EVENT = 'change'
 
 let store = []
 
+function jsonize (content) {
+  const rows = content.split('\n')
+  rows.pop()
+  const json = '{"tmp": [' + rows.join(',') + ']}'
+  return JSON.parse(json).tmp
+}
+
 class ContentStore extends EventEmitter {
   getAll () {
     return store
@@ -28,8 +35,24 @@ class ContentStore extends EventEmitter {
     if (index === -1) {
       return null
     } else {
-      return store[index].content
+      return jsonize(store[index].content)
     }
+  }
+
+  getContents (fileName) {
+    const contents = []
+    for (let i = 0; i < store.length; ++i) {
+      const dirName = store[i].dirName
+      if (store[i].fileName === fileName) {
+        const content = this.getContent(dirName, fileName)
+        contents.push({
+          dirName: dirName,
+          fileName: fileName,
+          data: content
+        })
+      }
+    }
+    return contents
   }
 
   getParameters () {
@@ -46,7 +69,8 @@ class ContentStore extends EventEmitter {
 
 function getIndex (dirName, fileName) {
   let exists = false
-  for (let i = 0; i < store.length; ++i) {
+  let i = 0
+  for (i = 0; i < store.length; ++i) {
     if (store[i].dirName === dirName && store[i].fileName === fileName) {
       exists = true
       break
