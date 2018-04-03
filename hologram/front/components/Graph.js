@@ -56,14 +56,14 @@ export default class Graph extends React.Component {
           type: 'linear',
           position: 'bottom',
           ticks: {
-            min: minX * 1.1,
-            max: maxX * 1.1
+            min: minX,
+            max: maxX
           }
         }],
         yAxes: [{
           ticks: {
-            min: minY * 1.1,
-            max: maxY * 1.1
+            min: minY,
+            max: maxY
           }
         }]
       }
