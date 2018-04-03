@@ -43,6 +43,24 @@ const actions = {
       fileName: fileName,
       content: content
     })
+  },
+  changeXAxis: (value) => {
+    AppDispatcher.dispatch({
+      actionType: AppConstants.CHANGE_X_AXIS,
+      value: value
+    })
+  },
+  changeYAxis: (value) => {
+    AppDispatcher.dispatch({
+      actionType: AppConstants.CHANGE_Y_AXIS,
+      value: value
+    })
+  },
+  changeFile: (value) => {
+    AppDispatcher.dispatch({
+      actionType: AppConstants.CHANGE_FILE,
+      file: value
+    })
   }
 }
 

@@ -5,6 +5,7 @@ import os
 import socket
 import json
 import argparse
+import re
 
 from datetime import datetime
 
@@ -30,7 +31,7 @@ def get_files(dir_name):
     file_names = os.listdir(interpolate_path(dir_name))
     paths = map(lambda p: interpolate_path(os.path.join(dir_name, p)), file_names)
     files = filter(os.path.isfile, paths)
-    names = map(os.path.basename, files)
+    names = filter(lambda s: re.search(r'.*\.json$', s), map(os.path.basename, files))
     return list(names)
 
 @app.route("/", methods=['GET'])

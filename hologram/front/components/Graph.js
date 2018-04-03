@@ -44,6 +44,7 @@ export default class Graph extends React.Component {
         borderColor: color,
         pointBorderColor: color,
         pointHoverBackgroundColor: color,
+        pointRadius: 0.0,
         fill: false
       })
     }
