@@ -26,6 +26,10 @@ module.exports = {
             }
           }
         ]
+      },
+      {
+        test: /\.scss$/,
+        loaders: ['css-loader', 'sass-loader']
       }
     ]
   },

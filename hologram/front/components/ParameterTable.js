@@ -1,4 +1,14 @@
 import * as React from 'react'
+require('../styles/ParameterTable.scss')
+
+function convertToString (value) {
+  switch (typeof value) {
+    case 'object':
+      return value.toString()
+    default:
+      return value
+  }
+}
 
 export default class ParameterTable extends React.Component {
   render () {
@@ -12,7 +22,7 @@ export default class ParameterTable extends React.Component {
       }
     }
     return (
-      <table>
+      <table className='table table-bordered table-responsive'>
         <thead>
           <tr>
             <th>{'parameter'}</th>
@@ -31,7 +41,7 @@ export default class ParameterTable extends React.Component {
                 {parameters.map((parameter) => {
                   const value = key in parameter.parameter ? parameter.parameter[key] : 'none'
                   return (
-                    <td>{value}</td>
+                    <td>{convertToString(value)}</td>
                   )
                 })}
               </tr>
