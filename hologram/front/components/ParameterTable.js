@@ -37,9 +37,13 @@ export default class ParameterTable extends React.Component {
           <tr>
             <th>{'parameter'}</th>
             {parameters.map((parameter) => {
+              let className = 'dirname'
+              if (actives.indexOf(parameter.dirName) !== -1) {
+                className += ' active'
+              }
               return (
                 <td
-                  className={"dirname " + (actives.indexOf(parameter.dirName) === -1 ? '' : 'active') }
+                  className={className}
                   onClick={(e) => this.clickDirectory(parameter.dirName, actives)}>
                     {parameter.dirName}
                   </td>

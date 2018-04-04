@@ -1,4 +1,5 @@
 .dirname {
+  cursor: pointer;
   &:hover {
     background: #3498db;
     color: white;
@@ -6,6 +7,16 @@
 }
 
 .active {
+  cursor: pointer;
   background: #3498db;
   color: white;
+}
+
+.form-control {
+  width: 25%;
+  display: inline-block;
+}
+
+.custom-select {
+  width: 25%;
 }

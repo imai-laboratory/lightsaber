@@ -29,17 +29,19 @@ export default class Header extends React.Component {
     const toOptions = (values) => values.map(value => (<option value={value}>{value}</option>))
     const windowSize = this.props.windowSize
     return (
-      <div>
-        <select value={selectedX} onChange={this.changeXAxis}>
-          {toOptions(options)}
-        </select>
-        <select value={selectedY} onChange={this.changeYAxis}>
-          {toOptions(options)}
-        </select>
-        <select value={selectedFile} onChange={(e) => this.changeFile(e, options)}>
-          {toOptions(files)}
-        </select>
-        <input type="number" value={windowSize} onChange={this.changeWindowSize} />
+      <div className='form-group row'>
+        <div className='col'>
+          <select className='custom-select' value={selectedX} onChange={this.changeXAxis}>
+            {toOptions(options)}
+          </select>
+          <select className='custom-select' value={selectedY} onChange={this.changeYAxis}>
+            {toOptions(options)}
+          </select>
+          <select className='custom-select' value={selectedFile} onChange={(e) => this.changeFile(e, options)}>
+            {toOptions(files)}
+          </select>
+          <input className='form-control' type="number" value={windowSize} onChange={this.changeWindowSize} />
+        </div>
       </div>
     )
   }
