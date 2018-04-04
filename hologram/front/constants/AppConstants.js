@@ -8,5 +8,7 @@ export default KeyMirror({
   CHANGE_X_AXIS: null,
   CHANGE_Y_AXIS: null,
   CHANGE_FILE: null,
-  CHANGE_WINDOW_SIZE: null
+  CHANGE_WINDOW_SIZE: null,
+  ENABLE_DIRECTORY: null,
+  DISABLE_DIRECTORY: null
 })

@@ -67,7 +67,19 @@ const actions = {
       actionType: AppConstants.CHANGE_WINDOW_SIZE,
       value: value
     })
-  }
+  },
+  enableDirectory: (value) => {
+    AppDispatcher.dispatch({
+      actionType: AppConstants.ENABLE_DIRECTORY,
+      value: value
+    })
+  },
+  disableDirectory: (value) => {
+    AppDispatcher.dispatch({
+      actionType: AppConstants.DISABLE_DIRECTORY,
+      value: value
+    })
+  },
 }
 
 export default actions

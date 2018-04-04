@@ -43,6 +43,9 @@ export default class Graph extends React.Component {
     let maxY = -1000000
     for (let i = 0; i < contents.length; ++i) {
       const content = contents[i]
+      if (this.props.actives.indexOf(content.dirName) === -1) {
+        continue
+      }
       const data = []
       const color = colors[i % colors.length]
       for (let row of content.data) {

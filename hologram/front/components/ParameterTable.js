@@ -1,4 +1,5 @@
 import * as React from 'react'
+import AppActions from '../actions/AppActions'
 require('../styles/ParameterTable.scss')
 
 function convertToString (value) {
@@ -11,8 +12,17 @@ function convertToString (value) {
 }
 
 export default class ParameterTable extends React.Component {
+  clickDirectory (directory, actives) {
+    if (actives.indexOf(directory) === -1) {
+      AppActions.enableDirectory(directory)
+    } else {
+      AppActions.disableDirectory(directory)
+    }
+  }
+
   render () {
     const parameters = this.props.parameters
+    const actives = this.props.actives
     const keys = []
     for (let i = 0; i < parameters.length; ++i) {
       for (let key of Object.keys(parameters[i].parameter)) {
@@ -28,7 +38,11 @@ export default class ParameterTable extends React.Component {
             <th>{'parameter'}</th>
             {parameters.map((parameter) => {
               return (
-                <td>{parameter.dirName}</td>
+                <td
+                  className={"dirname " + (actives.indexOf(parameter.dirName) === -1 ? '' : 'active') }
+                  onClick={(e) => this.clickDirectory(parameter.dirName, actives)}>
+                    {parameter.dirName}
+                  </td>
               )
             })}
           </tr>
