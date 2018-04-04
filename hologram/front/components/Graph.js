@@ -10,11 +10,32 @@ const colors = [
   '#e74c3c'
 ]
 
+function movingAverage (data, window) {
+  const averagedData = []
+  const queue = []
+  for (let i = 0; i < data.length; ++i) {
+    if (queue.length > window) {
+      queue.shift()
+    }
+    queue.push(data[i].y)
+    let sum = 0.0
+    for (let value of queue) {
+      sum += value
+    }
+    averagedData.push({
+      x: data[i].x,
+      y: parseFloat(sum) / queue.length
+    })
+  }
+  return averagedData
+}
+
 export default class Graph extends React.Component {
   render () {
     const contents = this.props.contents
     const x = this.props.x
     const y = this.props.y
+    const window = this.props.windowSize
     const datasets = []
     let minX = 1000000
     let maxX = -1000000
@@ -38,7 +59,7 @@ export default class Graph extends React.Component {
         data.push({x: row[x], y: row[y]})
       }
       datasets.push({
-        data: data,
+        data: movingAverage(data, window),
         label: content.dirName,
         backgroundColor: color,
         borderColor: color,
@@ -67,7 +88,14 @@ export default class Graph extends React.Component {
             max: maxY
           }
         }]
-      }
+      },
+      animation: {
+        duration: 0
+      },
+      hover: {
+        animationDuration: 0
+      },
+      responsiveAnimationDuration: 0
     }
     return (
       <Line data={data} options={options} />

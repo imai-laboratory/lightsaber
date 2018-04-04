@@ -7,7 +7,8 @@ let CHANGE_EVENT = 'change'
 let store = {
   x: null,
   y: null,
-  file: null
+  file: null,
+  windowSize: 1
 }
 
 class HeaderStore extends EventEmitter {
@@ -41,6 +42,10 @@ headerStore.dispatchToken = AppDispatcher.register((action) => {
       break
     case AppConstants.CHANGE_FILE:
       store.file = action.file
+      headerStore.emitChange()
+      break
+    case AppConstants.CHANGE_WINDOW_SIZE:
+      store.windowSize = action.value > 0 ? action.value : 1
       headerStore.emitChange()
       break
   }

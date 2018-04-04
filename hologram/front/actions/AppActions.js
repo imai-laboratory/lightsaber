@@ -61,6 +61,12 @@ const actions = {
       actionType: AppConstants.CHANGE_FILE,
       file: value
     })
+  },
+  changeWindowSize: (value) => {
+    AppDispatcher.dispatch({
+      actionType: AppConstants.CHANGE_WINDOW_SIZE,
+      value: value
+    })
   }
 }
 

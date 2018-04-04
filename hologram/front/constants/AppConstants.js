@@ -7,5 +7,6 @@ export default KeyMirror({
   LOAD_CONTENT_COMPLETED: null,
   CHANGE_X_AXIS: null,
   CHANGE_Y_AXIS: null,
-  CHANGE_FILE: null
+  CHANGE_FILE: null,
+  CHANGE_WINDOW_SIZE: null
 })

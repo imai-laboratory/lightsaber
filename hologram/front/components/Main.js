@@ -42,7 +42,6 @@ export default class Main extends React.Component {
 
   render () {
     const state = this.state
-    console.log(state)
     const axis = state.contents.length > 0 ? Object.keys(state.contents[0].data[0]) : []
     const files = state.directories.length > 0 ? state.directories[0].files : []
     return (
@@ -52,9 +51,14 @@ export default class Main extends React.Component {
           files={files}
           x={state.header.x}
           y={state.header.y}
-          file={state.header.file} />
+          file={state.header.file}
+          windowSize={state.header.windowSize} />
         {state.contents.length > 0 ?
-          <Graph contents={state.contents} x={state.header.x} y={state.header.y} />
+          <Graph
+            contents={state.contents}
+            x={state.header.x}
+            y={state.header.y}
+            windowSize={state.header.windowSize} />
           : ''
         }
         <ParameterTable parameters={state.parameters} />

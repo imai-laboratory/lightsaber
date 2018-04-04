@@ -16,6 +16,10 @@ export default class Header extends React.Component {
     AppActions.changeYAxis(options[0])
   }
 
+  changeWindowSize (e) {
+    AppActions.changeWindowSize(e.target.value)
+  }
+
   render () {
     const options = this.props.options.length > 0 ? this.props.options : ['']
     const files = this.props.files.length > 0 ? this.props.files : ['']
@@ -23,6 +27,7 @@ export default class Header extends React.Component {
     const selectedY = this.props.y === null ? this.props.options[0] : this.props.y
     const selectedFile = this.props.file === null ? this.props.files[0] : this.props.file
     const toOptions = (values) => values.map(value => (<option value={value}>{value}</option>))
+    const windowSize = this.props.windowSize
     return (
       <div>
         <select value={selectedX} onChange={this.changeXAxis}>
@@ -34,6 +39,7 @@ export default class Header extends React.Component {
         <select value={selectedFile} onChange={(e) => this.changeFile(e, options)}>
           {toOptions(files)}
         </select>
+        <input type="number" value={windowSize} onChange={this.changeWindowSize} />
       </div>
     )
   }
