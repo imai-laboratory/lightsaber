@@ -22,7 +22,7 @@ class Rollout:
         self.actions.append(action)
         self.rewards.append(reward)
         self.values.append(value)
-        self.terminal = terminal
+        self.terminals.append(terminal)
         self.features.append(feature)
 
     def flush(self):
@@ -30,5 +30,5 @@ class Rollout:
         self.actions = []
         self.rewards = []
         self.values = []
-        self.terminal = False
+        self.terminals = []
         self.features = []
