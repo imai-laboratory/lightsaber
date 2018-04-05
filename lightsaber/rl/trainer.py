@@ -109,7 +109,7 @@ class Trainer:
         print('step: {}, episode: {}, reward: {}'.format(
             self.global_step,
             self.episode,
-            self.sum_of_rewards
+            self.env.get_results()['rewards']
         ))
 
     def before_action_callback(self, states):
@@ -132,7 +132,7 @@ class Trainer:
     def end_episode_callback(self):
         if self.end_episode is not None:
             self.end_episode(
-                self.sum_of_rewards,
+                self.env.get_results()['rewards'],
                 self.global_step,
                 self.episode
             )
@@ -235,7 +235,7 @@ class BatchTrainer(Trainer):
                         self.episode += 1
                         # callback at the end of episode
                         self.end_episode(
-                            self.sum_of_rewards[i],
+                            self.env.get_results()[i]['rewards'],
                             self.global_step,
                             self.episode
                         )

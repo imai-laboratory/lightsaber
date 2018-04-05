@@ -9,9 +9,13 @@ class EnvWrapper:
         self.action_space = env.action_space
         self.r_preprocess = r_preprocess
         self.s_preprocess = s_preprocess
+        self.results = {
+            'rewards': 0
+        }
 
     def step(self, action):
         state, reward, done, info = self.env.step(action)
+        self.results['rewards'] += reward
         # preprocess reward
         if self.r_preprocess is not None:
             reward = self.r_preprocess(reward)
@@ -25,10 +29,14 @@ class EnvWrapper:
         # preprocess state
         if self.s_preprocess is not None:
             state = self.s_preprocess(state)
+        self.results['rewards'] = 0
         return state
 
     def render(self):
         self.env.render()
+
+    def get_results(self):
+        return self.results
 
 class BatchEnvWrapper:
     def __init__(self, envs, r_preprocess=None, s_preprocess=None):
@@ -79,3 +87,6 @@ class BatchEnvWrapper:
 
     def get_num_of_envs(self):
         return len(self.envs)
+
+    def get_results(self):
+        return list(map(lambda e: e.get_results(), self.envs))
