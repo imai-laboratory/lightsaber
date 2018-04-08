@@ -90,13 +90,20 @@ class Trainer:
                 # episode reaches the end
                 if done:
                     self.episode += 1
-                    self.end_episode_callback()
+                    self.end_episode_callback(
+                        self.env.get_results()['rewards'],
+                        self.global_step, self.local_step)
                     self.finish_episode(states, reward)
                     break
 
-                self.before_action_callback(states)
-                state, reward, done, info = self.move_to_next(states, reward, done)
-                self.after_action_callback(states, reward)
+                self.before_action_callback(
+                    states, self.global_step, self.local_step)
+
+                state, reward, done, info = self.move_to_next(
+                    states, reward, done)
+
+                self.after_action_callback(
+                    states, reward, self.global_step, self.local_step)
 
                 self.sum_of_rewards += reward
                 self.global_step += 1
@@ -112,29 +119,29 @@ class Trainer:
             self.env.get_results()['rewards']
         ))
 
-    def before_action_callback(self, states):
+    def before_action_callback(self, states, global_step, local_step):
         if self.before_action is not None:
             self.before_action(
                 states,
-                self.global_step,
-                self.local_step
+                global_step,
+                local_step
             )
 
-    def after_action_callback(self, states, reward):
+    def after_action_callback(self, states, reward, global_step, local_step):
         if self.after_action is not None:
             self.after_action(
                 states,
                 reward,
-                self.global_step,
-                self.local_step
+                global_step,
+                local_step
             )
 
-    def end_episode_callback(self):
+    def end_episode_callback(self, reward, global_step, episode):
         if self.end_episode is not None:
             self.end_episode(
-                self.env.get_results()['rewards'],
-                self.global_step,
-                self.episode
+                reward,
+                global_step,
+                episode
             )
 
     def is_training_finished(self):

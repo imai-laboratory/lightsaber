@@ -40,6 +40,8 @@ class EnvWrapper:
 
 class BatchEnvWrapper:
     def __init__(self, envs, r_preprocess=None, s_preprocess=None):
+        self.r_preprocess = r_preprocess
+        self.s_preprocess = s_preprocess
         self.envs = []
         for env in envs:
             env = EnvWrapper(
@@ -63,7 +65,7 @@ class BatchEnvWrapper:
             if self.running[i]:
                 state, reward, done, info = env.step(actions[i])
             else:
-                state = copy.deepcopy(self.zero_state)
+                state = self.s_preprocess(copy.deepcopy(self.zero_state))
                 reward = 0
                 done = True
                 info = None

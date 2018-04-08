@@ -7,7 +7,7 @@ def discount(x, gamma):
 
 def compute_v_and_adv(rewards, values, bootstrapped_value, gamma, lam=1.0):
     rewards = np.array(rewards)
-    values = np.array(values + [bootstrapped_value])
+    values = np.array(list(values) + [bootstrapped_value])
     v = discount(np.array(list(rewards) + [bootstrapped_value]), gamma)[:-1]
     delta = rewards + gamma * values[1:] - values[:-1]
     adv = discount(delta, gamma * lam)
@@ -22,7 +22,7 @@ class Rollout:
         self.actions.append(action)
         self.rewards.append(reward)
         self.values.append(value)
-        self.terminal = terminal
+        self.terminals.append(terminal)
         self.features.append(feature)
 
     def flush(self):
@@ -30,5 +30,5 @@ class Rollout:
         self.actions = []
         self.rewards = []
         self.values = []
-        self.terminal = False
+        self.terminals = []
         self.features = []
