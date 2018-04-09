@@ -297,26 +297,29 @@ class AsyncTrainer:
             if after_action is not None:
                 after_action(state, reward, shared_step, global_step, local_step)
 
-        def _end_episode(reward, global_step, episode):
-            shared_step = self.meta_data['shared_step']
-            self.meta_data['shared_episode'] += 1
-            shared_episode = self.meta_data['shared_episode']
-            if debug:
-                msg = 'global_step: {}, local_step: {}, episode: {}, reward: {}'
-                print(msg.format(
-                    shared_step,
-                    global_step,
-                    episode,
-                    reward
-                ))
-            if end_episode is not None:
-                end_episode(
-                    reward,
-                    shared_step,
-                    global_step,
-                    shared_episode,
-                    episode
-                )
+        def _end_episode(i):
+            def func(reward, global_step, episode):
+                shared_step = self.meta_data['shared_step']
+                self.meta_data['shared_episode'] += 1
+                shared_episode = self.meta_data['shared_episode']
+                if debug:
+                    msg = 'worker: {}, global_step: {}, local_step: {}, episode: {}, reward: {}'
+                    print(msg.format(
+                        i,
+                        shared_step,
+                        global_step,
+                        shared_episode,
+                        reward
+                    ))
+                if end_episode is not None:
+                    end_episode(
+                        reward,
+                        shared_step,
+                        global_step,
+                        shared_episode,
+                        episode
+                    )
+            return func
 
         self.trainers = []
         for i in range(n_threads):
@@ -333,7 +336,7 @@ class AsyncTrainer:
                 debug=False,
                 before_action=_before_action,
                 after_action=_after_action,
-                end_episode=_end_episode,
+                end_episode=_end_episode(i),
                 is_finished=lambda s: self.meta_data['shared_step'] > final_step
             )
             self.trainers.append(trainer)
