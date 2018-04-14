@@ -14,6 +14,49 @@ class AgentInterface:
     def stop_episode(state, reward, training):
         raise NotImplementedError()
 
+def make_evaluator(agent,
+                   eval_episode=10,
+                   render=False,
+                   after_action=None,
+                   end_eval=None):
+    store = {
+        'sum_of_rewards': 0,
+        'count': 0
+    }
+    def _make_evaluator(env, state_shape, state_window):
+        def _end_episode(reward, step, episode):
+            store['sum_of_rewards'] += reward
+
+        def _end_eval(step, episode):
+            if end_eval is not None:
+                reward = store['sum_of_rewards']
+                count = store['count']
+                end_eval(float(reward) / eval_episode, step, episode)
+            store['sum_of_rewards'] = 0
+            store['count'] = 0
+
+        def _is_finished(step, eisode):
+            finished = episode > 0 and episode % eval_episode == 0
+            if finished:
+                _end_eval(step, episode)
+            return finished
+
+        return Trainer(
+            env=env,
+            agent=agent,
+            state_shape=state_shape,
+            final_step=0,
+            state_window=state_window,
+            training=False,
+            render=render,
+            debug=True,
+            before_action=None,
+            after_action=after_action,
+            end_episode=_end_episode,
+            is_finished=_is_finished
+        )
+    return _make_evaluator
+
 class Trainer:
     def __init__(self,
                 env,
@@ -27,7 +70,9 @@ class Trainer:
                 before_action=None,
                 after_action=None,
                 end_episode=None,
-                is_finished=None):
+                is_finished=None,
+                evaluator=None,
+                eval_interval=10 ** 5):
         self.env = env
         self.final_step = final_step
         self.init_states = deque(
@@ -45,12 +90,18 @@ class Trainer:
         self.after_action = after_action
         self.end_episode = end_episode
         self.is_finished = is_finished
+        self.eval_interval = eval_interval
+        if evaluator is None:
+            self.evaluator = None
+        else:
+            self.evaluator = evaluator(env, state_shape, state_window)
 
         # counters
         self.global_step = 0
         self.local_step = 0
         self.episode = 0
         self.sum_of_rewards = 0
+        self.last_eval = 0
 
     def move_to_next(self, states, reward, done):
         states = np.array(list(states))
@@ -109,6 +160,12 @@ class Trainer:
                 self.global_step += 1
                 self.local_step += 1
 
+            # evaluation
+            if self.evaluator is not None:
+                if (self.global_step - self.last_eval) > self.eval_interval:
+                    self.evaluator.start()
+                    self.last_eval = self.global_step
+
             if self.is_training_finished():
                 return
 
@@ -146,7 +203,7 @@ class Trainer:
 
     def is_training_finished(self):
         if self.is_finished is not None:
-            return self.is_finished(self.global_step)
+            return self.is_finished(self.global_step, self.episode)
         return self.global_step > self.final_step
 
 class BatchTrainer(Trainer):
@@ -278,7 +335,9 @@ class AsyncTrainer:
                 before_action=None,
                 after_action=None,
                 end_episode=None,
-                n_threads=10):
+                n_threads=10,
+                evaluator=None,
+                eval_interval=10 ** 5):
         # meta data shared by all threads
         self.meta_data = {
             'shared_step': 0,
@@ -321,6 +380,7 @@ class AsyncTrainer:
                     )
             return func
 
+        _is_finished = lambda s, e: self.meta_data['shared_step'] > final_step
         self.trainers = []
         for i in range(n_threads):
             env = envs[i]
@@ -337,7 +397,9 @@ class AsyncTrainer:
                 before_action=_before_action,
                 after_action=_after_action,
                 end_episode=_end_episode(i),
-                is_finished=lambda s: self.meta_data['shared_step'] > final_step
+                is_finished=_is_finished,
+                evaluator=evaluator if i == 0 else None,
+                eval_interval=eval_interval
             )
             self.trainers.append(trainer)
 
