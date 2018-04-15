@@ -32,8 +32,8 @@ class EnvWrapper:
         self.results['rewards'] = 0
         return state
 
-    def render(self):
-        self.env.render()
+    def render(self, mode='human'):
+        return self.env.render(mode=mode)
 
     def get_results(self):
         return self.results
@@ -84,8 +84,8 @@ class BatchEnvWrapper:
             states.append(state)
         return states
 
-    def render(self):
-        self.envs[0].render()
+    def render(self, mode='human'):
+        return self.envs[0].render(mode=mode)
 
     def get_num_of_envs(self):
         return len(self.envs)
