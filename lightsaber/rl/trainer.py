@@ -304,7 +304,9 @@ class AsyncTrainer:
         # meta data shared by all threads
         self.meta_data = {
             'shared_step': 0,
-            'shared_episode': 0
+            'shared_episode': 0,
+            'last_eval_step': 0,
+            'last_eval_episode': 0
         }
 
         # inserted callbacks
@@ -352,7 +354,15 @@ class AsyncTrainer:
         def _should_eval(step, episode):
             shared_step = self.meta_data['shared_step']
             shared_episode = self.meta_data['shared_episode']
-            should_eval(shared_step, shared_episode, step, episode)
+            last_eval_step = self.meta_data['last_eval_step']
+            last_eval_episode = self.meta_data['last_eval_episode']
+            is_eval = should_eval(
+                last_eval_step, last_eval_episode,
+                shared_step, shared_episode, step, episode)
+            if is_eval:
+                self.meta_data['last_eval_step'] = shared_step
+                self.meta_data['last_eval_episode'] = shared_episode
+            return is_eval
 
         self.trainers = []
         for i in range(n_threads):
@@ -372,8 +382,8 @@ class AsyncTrainer:
                 end_episode=_end_episode(i),
                 is_finished=lambda s: self.meta_data['shared_step'] > final_step,
                 evaluator=evaluator if i == 0 else None,
-                should_eval=should_eval if i == 0 else None,
-                end_eval=end_eval if i == 0 else None
+                should_eval=_should_eval if i == 0 else None,
+                end_eval=_end_eval if i == 0 else None
             )
             self.trainers.append(trainer)
 
