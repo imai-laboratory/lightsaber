@@ -12,14 +12,12 @@ class Evaluator:
                  eval_episodes=10,
                  render=False,
                  recorder=None,
-                 record_episodes=3,
-                 end_eval=None):
+                 record_episodes=3):
         self.env = env
         self.state_shape = state_shape
         self.eval_episodes = eval_episodes
         self.render = render
         self.recorder = recorder
-        self.end_eval = end_eval
         self.record_episodes = record_episodes
 
         self.init_states = deque(
@@ -62,15 +60,14 @@ class Evaluator:
             if episode == self.eval_episodes:
                 break
 
-        if self.end_eval is not None:
-            self.end_eval(trainer_step, trainer_episode, list_rewards)
-
         if self.recorder is not None:
             indices = np.random.choice(
                 self.eval_episodes, self.record_episodes, replace=False)
             for index in indices:
                 self.recorder.save(index, trainer_step)
             self.recorder.flush()
+
+        return list_rewards
 
 class Recorder:
     def __init__(self, outdir, bgr=True):

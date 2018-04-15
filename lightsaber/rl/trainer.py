@@ -29,6 +29,7 @@ class Trainer:
                 end_episode=None,
                 is_finished=None,
                 evaluator=None,
+                end_eval=None,
                 should_eval=lambda s, e: s % 10 ** 5 == 0):
         self.env = env
         self.final_step = final_step
@@ -48,6 +49,7 @@ class Trainer:
         self.end_episode = end_episode
         self.is_finished = is_finished
         self.evaluator = evaluator
+        self.end_eval = end_eval
         self.should_eval = should_eval
 
         # counters
@@ -120,8 +122,11 @@ class Trainer:
                         agent = copy.copy(self.agent)
                         agent.stop_episode(
                             copy.deepcopy(self.init_states), 0, False)
-                        self.evaluator.start(
+                        eval_rewards = self.evaluator.start(
                             agent, self.global_step, self.episode)
+                        if self.end_eval is not None:
+                            self.end_eval(
+                                self.global_step, self.episode, eval_rewards)
 
             if self.is_training_finished():
                 return
@@ -294,6 +299,7 @@ class AsyncTrainer:
                 end_episode=None,
                 n_threads=10,
                 evaluator=None,
+                end_eval=None,
                 should_eval=lambda gs, ge, s, e: gs % 10 ** 5 == 0):
         # meta data shared by all threads
         self.meta_data = {
@@ -337,6 +343,12 @@ class AsyncTrainer:
                     )
             return func
 
+        def _end_eval(step, episode, rewards):
+            shared_step = self.meta_data['shared_step']
+            shared_episode = self.meta_data['shared_episode']
+            if end_eval is not None:
+                end_eval(shared_step, shared_episode, step, episode, rewards)
+
         def _should_eval(step, episode):
             shared_step = self.meta_data['shared_step']
             shared_episode = self.meta_data['shared_episode']
@@ -360,7 +372,8 @@ class AsyncTrainer:
                 end_episode=_end_episode(i),
                 is_finished=lambda s: self.meta_data['shared_step'] > final_step,
                 evaluator=evaluator if i == 0 else None,
-                should_eval=should_eval if i == 0 else None
+                should_eval=should_eval if i == 0 else None,
+                end_eval=end_eval if i == 0 else None
             )
             self.trainers.append(trainer)
 
