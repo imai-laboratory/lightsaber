@@ -57,6 +57,11 @@ class Trainer:
         self.local_step = 0
         self.episode = 0
         self.sum_of_rewards = 0
+        self.pause = True
+
+        # for multithreading
+        self.resume_event = threading.Event()
+        self.resume_event.set()
 
     def move_to_next(self, states, reward, done):
         states = np.array(list(states))
@@ -91,6 +96,9 @@ class Trainer:
             state = self.env.reset()
             states = copy.deepcopy(self.init_states)
             while True:
+                # to stop trainer from outside
+                self.resume_event.wait()
+
                 states.append(state.tolist())
 
                 # episode reaches the end
@@ -167,6 +175,12 @@ class Trainer:
         if self.is_finished is not None:
             return self.is_finished(self.global_step)
         return self.global_step > self.final_step
+
+    def stop(self):
+        self.resume_event.clear()
+
+    def resume(self):
+        self.resume_event.set()
 
 class BatchTrainer(Trainer):
     def __init__(self,
@@ -300,7 +314,7 @@ class AsyncTrainer:
                 n_threads=10,
                 evaluator=None,
                 end_eval=None,
-                should_eval=lambda gs, ge, s, e: gs % 10 ** 5 == 0):
+                should_eval=None):
         # meta data shared by all threads
         self.meta_data = {
             'shared_step': 0,
@@ -348,6 +362,8 @@ class AsyncTrainer:
         def _end_eval(step, episode, rewards):
             shared_step = self.meta_data['shared_step']
             shared_episode = self.meta_data['shared_episode']
+            for trainer in self.trainers:
+                trainer.resume()
             if end_eval is not None:
                 end_eval(shared_step, shared_episode, step, episode, rewards)
 
@@ -356,12 +372,15 @@ class AsyncTrainer:
             shared_episode = self.meta_data['shared_episode']
             last_eval_step = self.meta_data['last_eval_step']
             last_eval_episode = self.meta_data['last_eval_episode']
-            is_eval = should_eval(
-                last_eval_step, last_eval_episode,
-                shared_step, shared_episode, step, episode)
-            if is_eval:
-                self.meta_data['last_eval_step'] = shared_step
-                self.meta_data['last_eval_episode'] = shared_episode
+            if should_eval is not None:
+                is_eval = should_eval(
+                    last_eval_step, last_eval_episode,
+                    shared_step, shared_episode, step, episode)
+                if is_eval:
+                    for trainer in self.trainers:
+                        trainer.stop()
+                    self.meta_data['last_eval_step'] = shared_step
+                    self.meta_data['last_eval_episode'] = shared_episode
             return is_eval
 
         self.trainers = []

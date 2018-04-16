@@ -26,7 +26,11 @@ class Evaluator:
 
     def start(self, agent, trainer_step, trainer_episode):
         episode = 0
-        list_rewards = []
+        rewards = []
+        if self.recorder is not None:
+            recorded_episodes = np.random.choice(
+                self.eval_episodes, self.record_episodes, replace=False)
+            recorders = {i: copy.deepcopy(self.recorder) for i in recorded_episodes}
         while True:
             sum_of_rewards = 0
             reward = 0
@@ -40,15 +44,13 @@ class Evaluator:
                 if self.render:
                     self.env.render()
 
-                if self.recorder is not None:
-                    self.recorder.append(self.env.render(mode='rgb_array'))
+                if self.recorder is not None and episode in recorders:
+                    recorders[episode].append(self.env.render(mode='rgb_array'))
 
                 # episode reaches the end
                 if done:
                     episode += 1
-                    list_rewards.append(sum_of_rewards)
-                    if self.recorder is not None:
-                        self.recorder.finish_episode()
+                    rewards.append(sum_of_rewards)
                     agent.stop_episode(nd_states, reward, False)
                     break
 
@@ -61,34 +63,26 @@ class Evaluator:
                 break
 
         if self.recorder is not None:
-            indices = np.random.choice(
-                self.eval_episodes, self.record_episodes, replace=False)
-            for index in indices:
-                self.recorder.save(index, trainer_step)
-            self.recorder.flush()
+            for index, recorder in recorders.items():
+                recorder.save_mp4('{}_{}.mp4'.format(trainer_step, index))
+                recorder.flush()
 
-        return list_rewards
+        return rewards
 
 class Recorder:
     def __init__(self, outdir, bgr=True):
         self.outdir = outdir
-        self.list_images = []
         self.images = []
         self.bgr = bgr
 
     def append(self, image):
         self.images.append(image)
 
-    def finish_episode(self):
-        self.list_images.append(self.images)
-        self.images = []
-
-    def save(self, index, step):
-        path = os.path.join(self.outdir, '{}_{}.mp4'.format(step, index))
-        save_video(path, self.list_images[index], bgr=self.bgr)
+    def save_mp4(self, file_name):
+        path = os.path.join(self.outdir, file_name)
+        save_video(path, self.images, bgr=self.bgr)
 
     def flush(self):
-        self.list_images = []
         self.images = []
 
 def save_video(path, images, frame_rate=30.0, bgr=True):
