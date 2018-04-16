@@ -106,7 +106,7 @@ class Trainer:
                     self.episode += 1
                     self.end_episode_callback(
                         self.env.get_results()['rewards'],
-                        self.global_step, self.local_step)
+                        self.global_step, self.episode)
                     self.finish_episode(states, reward)
                     break
 
