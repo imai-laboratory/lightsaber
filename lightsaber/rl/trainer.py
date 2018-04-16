@@ -124,17 +124,7 @@ class Trainer:
                 self.local_step += 1
 
                 if self.evaluator is not None:
-                    should_eval = self.should_eval(
-                        self.global_step, self.episode)
-                    if should_eval:
-                        agent = copy.copy(self.agent)
-                        agent.stop_episode(
-                            copy.deepcopy(self.init_states), 0, False)
-                        eval_rewards = self.evaluator.start(
-                            agent, self.global_step, self.episode)
-                        if self.end_eval is not None:
-                            self.end_eval(
-                                self.global_step, self.episode, eval_rewards)
+                    self.evaluate()
 
             if self.is_training_finished():
                 return
@@ -175,6 +165,21 @@ class Trainer:
         if self.is_finished is not None:
             return self.is_finished(self.global_step)
         return self.global_step > self.final_step
+
+    def evaluate(self):
+        should_eval = self.should_eval(self.global_step, self.episode)
+        if should_eval:
+            print('evaluation starts')
+            agent = copy.copy(self.agent)
+            agent.stop_episode(copy.deepcopy(self.init_states), 0, False)
+            eval_rewards = self.evaluator.start(
+                agent, self.global_step, self.episode)
+            if self.end_eval is not None:
+                self.end_eval(self.global_step, self.episode, eval_rewards)
+            if self.debug:
+                msg = '[eval] step: {}, episode: {}, reward: {}'
+                print(msg.format(
+                    self.global_step, self.episode, np.mean(eval_rewards)))
 
     def stop(self):
         self.resume_event.clear()
@@ -364,6 +369,9 @@ class AsyncTrainer:
             shared_episode = self.meta_data['shared_episode']
             for trainer in self.trainers:
                 trainer.resume()
+            if debug:
+                msg = '[eval] step: {}, episode: {}, reward: {}'
+                print(msg.format(shared_step, shared_episode, np.mean(rewards)))
             if end_eval is not None:
                 end_eval(shared_step, shared_episode, step, episode, rewards)
 
