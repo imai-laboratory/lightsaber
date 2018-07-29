@@ -18,6 +18,8 @@ class AnimatedLineGraph:
         self.lines = []
         fig.show()
         fig.canvas.draw()
+        if row == 1:
+            self.axs = axs = [axs]
         for i in range(row):
             self.lines.append(axs[i].plot(x, y, label=str(i), animated=True)[0])
         self.backgrounds = [fig.canvas.copy_from_bbox(ax.bbox) for ax in axs]
